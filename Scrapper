@@ -1,0 +1,39 @@
+MODE = "XML"
+
+EVEROOT = r"C:/Program Files/CCP/EVE"
+OUTPATH = r"C:/Documents and Settings/kevin/My Documents"
+
+import time
+import os
+from reverence import blue
+
+
+eve = blue.EVE(EVEROOT)
+cfg = eve.getconfigmgr()
+cachemgr = eve.getcachemgr()
+cmc = cachemgr.LoadCacheFolder("CachedMethodCalls")
+
+for key, obj in cmc.iteritems():
+        if key[1]=="GetOrders":
+                item = cfg.invtypes.Get(key[3])
+                region = cfg.evelocations.Get(key[2])
+                print "Processing " + item.name + " [" + region.locationName +"]... \n"
+                txtfile = open(os.path.join(OUTPATH, item.name+"-"+region.locationName+".xml"), 'w')
+                txtfile.write ("<data>")
+                for history_item in obj['lret']:
+                    for entry in history_item:
+                        line = "<entry>\n<OrderID>%(OrderID)i</OrderID>\n<TypeID>%(TypeID)i</TypeID>\n<VolEnt>%(VolEnt)i</VolEnt>\n<VolRem>%(VolRem)i</VolRem>\n<Price>%(Price).2f</Price>\n<MinVol>%(MinVolume)i</MinVol>\n<Bid>%(Bid)i</Bid>\n<Duration>%(Duration)i</Duration>\n<StationID>%(StationID)i</StationID>\n<Range>%(Range)i</Range>\n<Jumps>%(Jumps)i</Jumps>\n</entry>\n" % \
+                              {'OrderID': entry['orderID'], \
+                               'TypeID': entry['typeID'], \
+                               'VolEnt': entry['volEntered'], \
+                               'VolRem': entry['volRemaining'], \
+                               'Price': entry['price'], \
+                               'MinVolume': entry['minVolume'], \
+                               'Bid': entry['bid'], \
+                               'Duration': entry['duration'], \
+                               'StationID': entry['stationID'], \
+                               'Range': entry['range'], \
+                               'Jumps': entry['jumps']}
+                        txtfile.write(line+"\n")
+                txtfile.write("</data>")
+                txtfile.close()
